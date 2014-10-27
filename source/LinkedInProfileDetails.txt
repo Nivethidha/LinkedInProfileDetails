@@ -1,0 +1,118 @@
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+public class LinkedInProfileDetails {
+	public static void main(String[] args) {
+		LinkedInProfileDetails linkedInProfileDetails = new LinkedInProfileDetails();
+		try 
+		{
+	        BufferedWriter bw = new BufferedWriter(new FileWriter("/home/serendio/LinkedInContent.txt"));
+			//BufferedWriter bw = null;
+			List<String> linkedInUrls = linkedInProfileDetails.getLinkedInUrls();
+			for(String url: linkedInUrls){
+				String content = linkedInProfileDetails.getContent(url);
+				/*String title = content.split("\\|")[0].trim();
+				System.err.println(title);
+				bw = new BufferedWriter(new FileWriter("E:\\Jsoup\\"+title+".txt"));*/
+				bw.write(content);
+				/*bw.flush();
+				bw.close();*/
+			}
+			bw.flush();
+			bw.close();
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 
+	 * @return
+	 * @throws IOException
+	 */
+	private List<String> getLinkedInUrls() throws IOException {
+		List<String> urlList = new ArrayList<String>();
+		FileInputStream fin = new FileInputStream("/home/serendio/LinkedinUrls.txt");
+		BufferedReader br = new BufferedReader(new InputStreamReader(fin));
+		String sCurrentLine = null;
+		while ((sCurrentLine = br.readLine()) != null) {
+			if(sCurrentLine.contains("linkedin.com"))
+			urlList.add(sCurrentLine);
+		}
+		br.close();
+		return urlList;
+	}
+	/**
+	 * 
+	 * @param url
+	 * @return
+	 * @throws IOException
+	 */
+	private String getContent(String url) throws IOException {
+	
+		if(!url.contains(":"))
+			url = "https://"+url;
+		
+		Document doc = Jsoup.connect(url).get();
+		StringBuffer sbContent = new StringBuffer();
+
+		// get page title
+		//sbContent.append(doc.title());
+		//sbContent.append("\n");
+		
+		// get page content
+		//sbContent.append(doc.text());
+		//sbContent.append("\n");
+		
+
+		// get all links
+		//Elements links = doc.select("a[href]");
+		//for (Element link : links) {
+			//String s = link.toString();
+			//String[] s1 = new String[] { s };
+
+			//List<String> strs2 = Arrays.asList(s1);
+			//for (int index = 0; index < strs2.size(); index++) {
+				//sbContent.append(strs2.get(index));
+			//}
+		//}
+		
+		sbContent.append("\n");
+		sbContent.append(getFirstElement(doc, "span.full-name"));
+		sbContent.append("\n");
+		sbContent.append(getElementById(doc, "headline"));
+		sbContent.append("\n");
+		sbContent.append(getElementById(doc, "overview-summary-current"));
+		sbContent.append("\n");
+        sbContent.append(getElementById(doc, "overview-summary-past"));
+		sbContent.append("\n");
+		
+		return sbContent.toString();
+	}
+	
+	private String getFirstElement(Document doc,String cssQuery){
+		Element element = doc.select(cssQuery).first();
+		return element !=null ? element.text() : "";
+	}
+	
+	private String getElementById(Document doc,String id){
+		Element element = doc.getElementById(id);
+		return element !=null ? element.text() : "";
+	}
+
+}
+
+
+
